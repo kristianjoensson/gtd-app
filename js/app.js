@@ -8,7 +8,7 @@ import {
 } from './store.js';
 import {
   initSync, pushSoon, sync, isConfigured, onFirstSync,
-  signInWithGoogle, signInWithEmail, verifyEmailOtp, signOutUser,
+  signInWithGoogle, signOutUser,
 } from './sync.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -234,6 +234,8 @@ function renderSyncDot() {
   for (const el of document.querySelectorAll('.google-only')) {
     el.hidden = !sync.googleEnabled;
   }
+  $('#google-unavailable-gate').hidden = sync.googleEnabled;
+  $('#google-unavailable').hidden = sync.googleEnabled;
   const dot = $('#sync-dot');
   dot.dataset.status = sync.status;
   dot.title = {
@@ -535,8 +537,6 @@ const settingsDialog = $('#settings-dialog');
 $('#btn-settings').addEventListener('click', () => {
   renderAuthPanel();
   $('#sync-status-text').textContent = '';
-  $('#code-group').hidden = true;
-  $('#auth-code').value = '';
   settingsDialog.showModal();
 });
 
@@ -556,81 +556,14 @@ async function startGoogle(statusEl) {
   statusEl.textContent = 'Sender dig til Google…';
   const { error } = await signInWithGoogle();
   if (error === 'GOOGLE_DISABLED') {
-    statusEl.textContent =
-      'Google-login er ikke aktiveret endnu. Brug "Send login-link" i stedet - det virker nu. (Google slås til via SETUP.md trin 3.)';
+    statusEl.textContent = 'Google-login er ikke aktiveret lige nu. Prøv igen senere.';
   } else if (error) {
     statusEl.textContent = `Login fejlede: ${error}`;
   }
 }
 
-async function startMagic(inputEl, statusEl, codeGroupEl) {
-  const email = inputEl.value.trim();
-  if (!email.includes('@')) {
-    statusEl.textContent = 'Skriv din mailadresse først.';
-    return;
-  }
-  statusEl.textContent = 'Sender kode…';
-  const { error } = await signInWithEmail(email);
-  if (error) {
-    statusEl.textContent = `Kunne ikke sende koden: ${error}`;
-    return;
-  }
-  codeGroupEl.hidden = false;
-  codeGroupEl.querySelector('input').focus();
-  statusEl.textContent = 'Koden er sendt. Skriv den 6-cifrede kode fra mailen herunder - ingen grund til at åbne selve mailen i browseren.';
-}
-
-// Finishes login inside the app itself (no link, no browser handoff) - the
-// fix for installed iOS home-screen apps, which have their own storage
-// separate from Safari: a tapped magic-link there signs in "somewhere else"
-// and the installed app never sees the session. Typing the code here means
-// the whole login happens in the app's own storage from the start.
-async function startVerify(emailInputEl, codeInputEl, statusEl) {
-  const email = emailInputEl.value.trim();
-  const code = codeInputEl.value.trim();
-  if (!code) {
-    statusEl.textContent = 'Skriv koden fra mailen først.';
-    return;
-  }
-  statusEl.textContent = 'Bekræfter…';
-  const { error } = await verifyEmailOtp(email, code);
-  if (error) {
-    statusEl.textContent = 'Forkert eller udløbet kode. Prøv igen, eller send en ny.';
-  }
-  // On success sync's onAuthStateChange fires on its own and the gate closes.
-}
-
 $('#btn-google').addEventListener('click', () => startGoogle($('#sync-status-text')));
-$('#btn-magic').addEventListener('click', () => startMagic($('#auth-email'), $('#sync-status-text'), $('#code-group')));
-$('#btn-verify').addEventListener('click', () => startVerify($('#auth-email'), $('#auth-code'), $('#sync-status-text')));
 $('#btn-google-gate').addEventListener('click', () => startGoogle($('#login-status')));
-$('#btn-magic-gate').addEventListener('click', () => startMagic($('#login-email'), $('#login-status'), $('#code-group-gate')));
-$('#btn-verify-gate').addEventListener('click', () => startVerify($('#login-email'), $('#login-code'), $('#login-status')));
-
-$('#login-email').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    startMagic($('#login-email'), $('#login-status'), $('#code-group-gate'));
-  }
-});
-$('#auth-email').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    startMagic($('#auth-email'), $('#sync-status-text'), $('#code-group'));
-  }
-});
-$('#login-code').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    startVerify($('#login-email'), $('#login-code'), $('#login-status'));
-  }
-});
-$('#auth-code').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    startVerify($('#auth-email'), $('#auth-code'), $('#sync-status-text'));
-  }
-});
 
 $('#btn-signout').addEventListener('click', async () => {
   await signOutUser();

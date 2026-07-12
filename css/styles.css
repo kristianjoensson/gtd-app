@@ -560,8 +560,6 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 .ghost-btn.small { padding: 8px 10px; font-size: 14px; }
 .ghost-btn.danger { color: var(--pri-high); border-color: var(--pri-high-bg); }
 
-details summary { cursor: pointer; font-size: 14px; color: var(--ink-2); margin: 4px 0; }
-#sync-advanced { display: flex; flex-direction: column; gap: 8px; }
 .auth-stack {
   display: flex;
   flex-direction: column;
@@ -606,9 +604,6 @@ body[data-auth='out'] #login-view {
   height: 28px;
 }
 
-#login-view .divider { width: 100%; }
-#login-view input { width: 100%; }
-
 .google-btn {
   display: inline-flex;
   align-items: center;
@@ -627,36 +622,6 @@ body[data-auth='out'] #login-view {
   color: var(--accent);
   font-weight: 800;
   font-size: 14px;
-}
-
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--ink-3);
-  font-size: 13px;
-}
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--line);
-}
-
-#auth-email { flex: 1; min-width: 160px; }
-
-.code-group {
-  display: flex;
-  gap: 8px;
-  width: 100%;
-}
-.code-group input {
-  flex: 1;
-  min-width: 0;
-  text-align: center;
-  letter-spacing: 0.3em;
-  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- toast ---------- */

@@ -1,8 +1,8 @@
 # GTD - opsætning (ca. 20 min, én gang)
 
 GTD virker med det samme på én enhed (alt gemmes lokalt i browseren).
-Trinene her giver: en app-URL begge enheder kan åbne, login med Google eller
-mail-link, og automatisk synkronisering af opgaverne.
+Trinene her giver: en app-URL begge enheder kan åbne, login med Google,
+og automatisk synkronisering af opgaverne.
 
 ## Hvad er Supabase, og er det gratis?
 
@@ -46,35 +46,16 @@ adgang styres af login + RLS, ikke af nøglen.
 Under **Authentication → URL Configuration**: sæt Site URL til appens adresse
 (fx `https://kristianjoensson.github.io/gtd-app/`) og tilføj samme adresse under Redirect URLs.
 
-## Trin 3: Login-metoder
+## Trin 3: Login med Google (eneste login-metode)
 
-**Login-kode (virker overalt, kræver ét lille skridt i skabelonen - 2 min):** Appen bruger en
-6-cifret kode i stedet for et klik-link. Det er med vilje: en installeret hjemmeskærm-app på
-iPhone har sin EGEN lagerplads, adskilt fra Safari. Trykker man på et link i mailen, åbner det
-i Safari og logger ind DÉR - den installerede app-genvej ser det aldrig. Ved at skrive koden
-ind i selve appen sker hele login inde i appens egen lagerplads, så det virker på både iPhone,
-Windows og alt andet.
+GTD bruger kun Google-login - intet mail-link, ingen kode. Simplere for hende (ét tryk,
+ingen mail at tjekke), og undgår en reel begrænsning: Supabases gratis tier tillader ikke
+at redigere indholdet af login-mails uden en selvopsat SMTP-udbyder, så en kode i mailen
+var ikke muligt uden ekstra opsætning. Appen skjuler selv Google-knappen hvis provideren
+skulle blive slået fra i Supabase, og viser den automatisk igen når den er aktiv.
 
-For at koden rent faktisk står i mailen, skal Supabases skabelon udvides én gang:
-1. [Authentication → Email Templates](https://supabase.com/dashboard/project/fhkykdaqvywrlsqsqpmq/auth/templates) → vælg **Magic Link**.
-2. I HTML-feltet, tilføj denne linje et sted i skabelonen (fx lige under linket):
-   ```html
-   <p>Eller indtast denne kode i appen: <strong>{{ .Token }}</strong></p>
-   ```
-3. **Save**.
-
-Uden dette trin sendes der stadig en mail, men den indeholder ikke en kode at skrive ind -
-kun linket, som ikke virker fra den installerede app på iPhone.
-
-Flow herefter: hun skriver sin mail i appen → trykker "Send login-kode" → åbner mailen →
-skriver de 6 tal ind i appen → logget ind. Gratis-tierens indbyggede mailafsender er
-begrænset til få mails i timen - rigeligt, da login kun sker én gang pr. enhed (sessionen
-fornyes selv bagefter).
-
-**Google-login (valgfrit, ca. 10 min opsætning - gratis, kræver IKKE betalt Google-konto):**
-
-Appen skjuler selv Google-knappen, så længe provideren er slået fra i Supabase, og viser
-den automatisk igen når du aktiverer den. Mail-link alene er en fuldgyldig løsning.
+**Status: allerede sat op og live** (2026-07-12) - dette afsnit er til reference, hvis
+projektet nogensinde skal genskabes fra bunden.
 
 Idéen: Google udsteder et sæt nøgler (Client ID + Client secret) til dit Supabase-projekt,
 og Supabase får nøglerne indsat. Del A skaber nøglerne, Del B indsætter dem. Appen skal
@@ -108,9 +89,9 @@ ikke ændres - knappen virker i samme sekund, du trykker Save i Del B.
 *Fejlsøgning:*
 - "provider is not enabled" → Del B blev ikke gemt (eller Enable-knappen er slået fra).
 - "redirect_uri_mismatch" → redirect-URI'en i punkt 4 er ikke tegn-for-tegn `https://fhkykdaqvywrlsqsqpmq.supabase.co/auth/v1/callback`.
-- "Access blocked: app has not completed verification" → mailen der logger ind mangler under Test users (punkt 3) - tilføj den, eller tryk Publish app.
+- "Access blocked: app has not completed verification" → mailen der logger ind mangler under Test users (punkt 3) - tilføj den, eller tryk Publish app (allerede gjort - appen kører "In production", enhver Google-konto kan logge ind).
 
-Begge metoder giver samme konto-model: én konto = én opgaveliste, synk på tværs af alle enheder hvor hun er logget ind. I logger bare ind med hver jeres konto, hvis I begge vil bruge appen.
+Én konto = én opgaveliste, synk på tværs af alle enheder hvor man er logget ind. I logger bare ind med hver jeres egen Google-konto.
 
 ## Trin 4: Installér på enhederne
 

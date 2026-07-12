@@ -17,7 +17,7 @@ stripe) and due date are parsed from natural Danish at capture time.
 - `index.html` - app shell, dialogs (task detail, settings/login)
 - `js/parser.js` - Danish NL parser (dates, times, priority, someday). Pure module.
 - `js/store.js` - state + localStorage + mutations + LWW merge for sync
-- `js/sync.js` - auth (Supabase Auth via vendored supabase-js: Google OAuth + magic link) + REST sync against `gtd_tasks`, RLS on auth.uid()
+- `js/sync.js` - auth (Supabase Auth via vendored supabase-js, Google OAuth ONLY - email/OTP removed 2026-07-12) + REST sync against `gtd_tasks`, RLS on auth.uid()
 - `js/config.js` - SUPABASE_URL + SUPABASE_ANON_KEY (empty = local-only mode; anon key is public by design)
 - `js/vendor/supabase-js.js` - pinned UMD build of @supabase/supabase-js v2 (auth/session/refresh)
 - `js/app.js` - rendering + events. Mobile = tabs (Fokus/Indbakke/Senere/Log), desktop ≥900px = 4-column board + log below.
@@ -35,6 +35,7 @@ always degrade to local-only mode with the "ikke sat op" settings panel.
 
 ## Decisions
 
+- Login is Google-only (2026-07-12, Kristian asked to remove the one-time-code option). Email provider disabled server-side in Supabase (not just hidden in UI) - the OTP API can't be called even directly. `.google-only` elements + a fallback "unavailable" message still guard against Google ever getting disabled again.
 - PWA over native: one codebase, no App Store, installs on iPhone (Add to Home Screen) and Windows (Edge/Chrome install).
 - Auth replaced the v1 workspace-token sync (2026-07-12, Kristian asked for real login). One account = one task list; login on both devices with the same account.
 - On first login per device (or account switch) all local tasks are marked dirty and merge UP into the account; cursor resets. Account switching merges lists - documented tradeoff for a 1-user app.
@@ -49,3 +50,5 @@ always degrade to local-only mode with the "ikke sat op" settings panel.
 - 2026-07-12: Supabase project fhkykdaqvywrlsqsqpmq connected (publishable key in config.js, deployed + verified live: REST 200, RLS blocks anon, email login on, Google provider off). Pending: Kristian sets Auth URL Configuration + optional Google provider.
 - 2026-07-12: login gate added - configured app shows ONLY the login screen until a session exists (body[data-auth] pending/out/in); sessions persist per device via supabase-js; welcome task now seeds after first sync and only into an empty account.
 - 2026-07-12: switched from magic-link to 6-digit code login. Root cause: iOS installed home-screen apps have their own storage, separate from Safari, so a tapped link signed in over there and the installed app never saw the session. verifyEmailOtp() completes login inside the app itself. REQUIRES the Magic Link email template to include {{ .Token }} (SETUP.md trin 3) - Kristian must add this in the Supabase dashboard, cannot be done via anon key.
+- 2026-07-12: Google OAuth client created in Cloud project kjgtd-502218 (Client ID/Secret pasted into Supabase via clipboard paste, never read into this tool's context - Client Secret materialization is auto-blocked by policy); app published to production (no test-user allowlist needed, only email+profile scopes so no Google verification required); Google provider confirmed "Enabled" in Supabase and live end-to-end (redirect to Google account chooser verified).
+- 2026-07-12: removed email/OTP login entirely per Kristian's request (Google-only). Deleted signInWithEmail/verifyEmailOtp from sync.js, the mail-code UI from index.html (gate + settings), and related JS wiring + dead CSS. Also disabled the Email provider server-side in Supabase Auth Providers - not just a UI change, the OTP endpoint itself is now off.
