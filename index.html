@@ -97,10 +97,10 @@
     <span class="brand-mark big" aria-hidden="true"></span>
     <h2>Velkommen til GTD</h2>
     <p class="hint">Log ind for at komme i gang. Det skal kun gøres én gang pr. enhed - appen husker dig bagefter.</p>
-    <button id="btn-google-gate" type="button" class="primary-btn google-btn">
+    <button id="btn-google-gate" type="button" class="primary-btn google-btn google-only" hidden>
       <span class="g-badge" aria-hidden="true">G</span>Log ind med Google
     </button>
-    <div class="divider" aria-hidden="true">eller</div>
+    <div class="divider google-only" aria-hidden="true" hidden>eller</div>
     <input id="login-email" type="email" placeholder="din@mail.dk" autocomplete="email" aria-label="Mailadresse" />
     <button id="btn-magic-gate" type="button" class="ghost-btn">Send login-link</button>
     <p id="login-status" class="hint" aria-live="polite"></p>
@@ -177,15 +177,15 @@
       </div>
       <div id="auth-signedout" class="auth-stack" hidden>
         <p class="hint">Log ind, så dine opgaver følger med på tværs af iPhone og Windows.</p>
-        <button id="btn-google" type="button" class="primary-btn google-btn">
+        <button id="btn-google" type="button" class="primary-btn google-btn google-only" hidden>
           <span class="g-badge" aria-hidden="true">G</span>Log ind med Google
         </button>
-        <div class="divider" aria-hidden="true">eller</div>
+        <div class="divider google-only" aria-hidden="true" hidden>eller</div>
         <div class="field-inline">
           <input id="auth-email" type="email" placeholder="din@mail.dk" autocomplete="email" />
           <button id="btn-magic" type="button" class="ghost-btn small">Send login-link</button>
         </div>
-        <p class="hint">Login-linket kommer på mail og virker uden kodeord. Google-knappen kræver at Google-login er slået til i Supabase (SETUP.md, trin 3).</p>
+        <p class="hint">Login-linket kommer på mail og virker uden kodeord. Du skal kun logge ind én gang pr. enhed.</p>
       </div>
       <div id="auth-signedin" class="auth-stack" hidden>
         <p class="hint">Logget ind som <strong id="auth-user"></strong>. Opgaverne synkroniserer automatisk.</p>

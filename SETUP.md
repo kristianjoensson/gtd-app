@@ -53,7 +53,10 @@ Hun skriver sin mail i appen → trykker på linket i mailen på samme enhed →
 Gratis-tierens indbyggede mailafsender er begrænset til få mails i timen - rigeligt, da
 login kun sker én gang pr. enhed (sessionen fornyes selv bagefter).
 
-**Google-login (pænest, ca. 10 min opsætning):**
+**Google-login (valgfrit, ca. 10 min opsætning - gratis, kræver IKKE betalt Google-konto):**
+
+Appen skjuler selv Google-knappen, så længe provideren er slået fra i Supabase, og viser
+den automatisk igen når du aktiverer den. Mail-link alene er en fuldgyldig løsning.
 
 Idéen: Google udsteder et sæt nøgler (Client ID + Client secret) til dit Supabase-projekt,
 og Supabase får nøglerne indsat. Del A skaber nøglerne, Del B indsætter dem. Appen skal

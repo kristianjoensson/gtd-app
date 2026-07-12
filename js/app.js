@@ -231,6 +231,9 @@ function renderSyncDot() {
   // Login gate: only an active "signedout" state hides the app. Everything
   // else (incl. unconfigured local mode) shows it.
   document.body.dataset.auth = sync.status === 'signedout' ? 'out' : 'in';
+  for (const el of document.querySelectorAll('.google-only')) {
+    el.hidden = !sync.googleEnabled;
+  }
   const dot = $('#sync-dot');
   dot.dataset.status = sync.status;
   dot.title = {

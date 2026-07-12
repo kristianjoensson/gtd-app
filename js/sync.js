@@ -11,7 +11,7 @@ const LS_CURSOR = 'gtd.sync.cursor.v1';
 const LS_USER = 'gtd.sync.user.v1';
 const POLL_MS = 20000;
 
-export const sync = { status: 'off', error: null, lastOk: null, user: null };
+export const sync = { status: 'off', error: null, lastOk: null, user: null, googleEnabled: false };
 
 let client = null;
 let statusCb = () => {};
@@ -55,6 +55,17 @@ export function initSync(onStatus) {
   client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   client.auth.onAuthStateChange((_event, session) => adoptSession(session));
   client.auth.getSession().then(({ data }) => adoptSession(data.session));
+
+  // The UI only shows the Google button when the provider is actually on.
+  fetch(`${SUPABASE_URL.replace(/\/+$/, '')}/auth/v1/settings`, {
+    headers: { apikey: SUPABASE_ANON_KEY },
+  })
+    .then((r) => r.json())
+    .then((s) => {
+      sync.googleEnabled = Boolean(s?.external?.google);
+      statusCb(sync);
+    })
+    .catch(() => {});
 
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) tick();
