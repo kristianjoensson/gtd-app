@@ -102,7 +102,11 @@
     </button>
     <div class="divider google-only" aria-hidden="true" hidden>eller</div>
     <input id="login-email" type="email" placeholder="din@mail.dk" autocomplete="email" aria-label="Mailadresse" />
-    <button id="btn-magic-gate" type="button" class="ghost-btn">Send login-link</button>
+    <button id="btn-magic-gate" type="button" class="ghost-btn">Send login-kode</button>
+    <div id="code-group-gate" class="code-group" hidden>
+      <input id="login-code" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="6-cifret kode" autocomplete="one-time-code" aria-label="Login-kode" />
+      <button id="btn-verify-gate" type="button" class="primary-btn small">Bekræft</button>
+    </div>
     <p id="login-status" class="hint" aria-live="polite"></p>
   </section>
 
@@ -183,9 +187,13 @@
         <div class="divider google-only" aria-hidden="true" hidden>eller</div>
         <div class="field-inline">
           <input id="auth-email" type="email" placeholder="din@mail.dk" autocomplete="email" />
-          <button id="btn-magic" type="button" class="ghost-btn small">Send login-link</button>
+          <button id="btn-magic" type="button" class="ghost-btn small">Send login-kode</button>
         </div>
-        <p class="hint">Login-linket kommer på mail og virker uden kodeord. Du skal kun logge ind én gang pr. enhed.</p>
+        <div id="code-group" class="code-group" hidden>
+          <input id="auth-code" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="6-cifret kode" autocomplete="one-time-code" aria-label="Login-kode" />
+          <button id="btn-verify" type="button" class="primary-btn small">Bekræft</button>
+        </div>
+        <p class="hint">Du får en 6-cifret kode på mail. Skriv den ind her i appen - så sker login inde i appen selv, uden at åbne browseren. Du skal kun gøre det én gang pr. enhed.</p>
       </div>
       <div id="auth-signedin" class="auth-stack" hidden>
         <p class="hint">Logget ind som <strong id="auth-user"></strong>. Opgaverne synkroniserer automatisk.</p>

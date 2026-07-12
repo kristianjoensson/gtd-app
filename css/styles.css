@@ -646,6 +646,19 @@ body[data-auth='out'] #login-view {
 
 #auth-email { flex: 1; min-width: 160px; }
 
+.code-group {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.code-group input {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  letter-spacing: 0.3em;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---------- toast ---------- */
 .toast-root {
   position: fixed;

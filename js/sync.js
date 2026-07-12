@@ -123,9 +123,25 @@ export async function signInWithGoogle() {
 
 export async function signInWithEmail(email) {
   if (!client) return { error: 'Synk er ikke sat op.' };
+  // emailRedirectTo is kept for desktop, where the link opens in the same
+  // browser profile that installed the app. On iOS a installed home-screen
+  // app has its OWN storage, separate from Safari - a tapped link signs in
+  // over there and the installed app never sees it. The 6-digit code (same
+  // email, verifyEmailOtp below) finishes the whole login inside the app
+  // itself, so it works everywhere including that case.
   const { error } = await client.auth.signInWithOtp({
     email,
     options: { emailRedirectTo: appUrl() },
+  });
+  return { error: error?.message ?? null };
+}
+
+export async function verifyEmailOtp(email, code) {
+  if (!client) return { error: 'Synk er ikke sat op.' };
+  const { error } = await client.auth.verifyOtp({
+    email,
+    token: code.trim(),
+    type: 'email',
   });
   return { error: error?.message ?? null };
 }

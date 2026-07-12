@@ -48,10 +48,28 @@ Under **Authentication → URL Configuration**: sæt Site URL til appens adresse
 
 ## Trin 3: Login-metoder
 
-**Mail-link (virker med det samme, 0 opsætning):** Supabase sender et login-link pr. mail.
-Hun skriver sin mail i appen → trykker på linket i mailen på samme enhed → logget ind.
-Gratis-tierens indbyggede mailafsender er begrænset til få mails i timen - rigeligt, da
-login kun sker én gang pr. enhed (sessionen fornyes selv bagefter).
+**Login-kode (virker overalt, kræver ét lille skridt i skabelonen - 2 min):** Appen bruger en
+6-cifret kode i stedet for et klik-link. Det er med vilje: en installeret hjemmeskærm-app på
+iPhone har sin EGEN lagerplads, adskilt fra Safari. Trykker man på et link i mailen, åbner det
+i Safari og logger ind DÉR - den installerede app-genvej ser det aldrig. Ved at skrive koden
+ind i selve appen sker hele login inde i appens egen lagerplads, så det virker på både iPhone,
+Windows og alt andet.
+
+For at koden rent faktisk står i mailen, skal Supabases skabelon udvides én gang:
+1. [Authentication → Email Templates](https://supabase.com/dashboard/project/fhkykdaqvywrlsqsqpmq/auth/templates) → vælg **Magic Link**.
+2. I HTML-feltet, tilføj denne linje et sted i skabelonen (fx lige under linket):
+   ```html
+   <p>Eller indtast denne kode i appen: <strong>{{ .Token }}</strong></p>
+   ```
+3. **Save**.
+
+Uden dette trin sendes der stadig en mail, men den indeholder ikke en kode at skrive ind -
+kun linket, som ikke virker fra den installerede app på iPhone.
+
+Flow herefter: hun skriver sin mail i appen → trykker "Send login-kode" → åbner mailen →
+skriver de 6 tal ind i appen → logget ind. Gratis-tierens indbyggede mailafsender er
+begrænset til få mails i timen - rigeligt, da login kun sker én gang pr. enhed (sessionen
+fornyes selv bagefter).
 
 **Google-login (valgfrit, ca. 10 min opsætning - gratis, kræver IKKE betalt Google-konto):**
 
