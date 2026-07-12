@@ -53,12 +53,41 @@ Hun skriver sin mail i appen → trykker på linket i mailen på samme enhed →
 Gratis-tierens indbyggede mailafsender er begrænset til få mails i timen - rigeligt, da
 login kun sker én gang pr. enhed (sessionen fornyes selv bagefter).
 
-**Google-login (pænest, 10 min opsætning):**
-1. [console.cloud.google.com](https://console.cloud.google.com) → nyt projekt → APIs & Services → OAuth consent screen: External, udfyld navn + din mail, tilføj hendes Gmail som testbruger (eller Publish app).
-2. Credentials → Create credentials → OAuth client ID → Web application:
-   - Authorized JavaScript origins: `https://<dit-supabase-ref>.supabase.co`
-   - Authorized redirect URIs: `https://<dit-supabase-ref>.supabase.co/auth/v1/callback`
-3. Kopiér Client ID + Client secret → Supabase → Authentication → Providers → Google → Enable + indsæt.
+**Google-login (pænest, ca. 10 min opsætning):**
+
+Idéen: Google udsteder et sæt nøgler (Client ID + Client secret) til dit Supabase-projekt,
+og Supabase får nøglerne indsat. Del A skaber nøglerne, Del B indsætter dem. Appen skal
+ikke ændres - knappen virker i samme sekund, du trykker Save i Del B.
+
+*Del A - Google Cloud Console (skab nøglerne):*
+
+1. Gå til [console.cloud.google.com](https://console.cloud.google.com) og log ind med din Google-konto.
+2. Klik projekt-vælgeren øverst til venstre → **New project** → navn `GTD` → Create → vælg projektet, når det er klar.
+3. Menu (☰) → **APIs & Services** → **OAuth consent screen** (kaldes også "Google Auth Platform").
+   - User type: **External** → Create.
+   - App name: `GTD`. User support email: din mail. Developer contact: din mail. Resten kan springes over - klik Save and continue igennem.
+   - Find **Test users** (ligger under "Audience" i det nye design): tilføj din Gmail OG hendes Gmail. Alternativ: klik **Publish app**, så kan alle Google-konti logge ind (fint, data er stadig pr. konto).
+4. **APIs & Services** → **Credentials** → **+ Create credentials** → **OAuth client ID**.
+   - Application type: **Web application**. Name: `GTD`.
+   - **Authorized JavaScript origins** → Add URI, indsæt præcis:
+     `https://fhkykdaqvywrlsqsqpmq.supabase.co`
+   - **Authorized redirect URIs** → Add URI, indsæt præcis:
+     `https://fhkykdaqvywrlsqsqpmq.supabase.co/auth/v1/callback`
+   - Klik **Create**. En boks viser **Client ID** og **Client secret** - lad den stå åben til Del B.
+
+*Del B - Supabase (indsæt nøglerne):*
+
+5. Åbn [Authentication → Providers](https://supabase.com/dashboard/project/fhkykdaqvywrlsqsqpmq/auth/providers) → fold **Google** ud.
+6. Slå **Enable Sign in with Google** til.
+7. Indsæt **Client ID** og **Client secret** fra boksen i Del A.
+8. Klik **Save**.
+
+*Del C - test:* åbn appen → **Log ind med Google** → vælg konto → du lander tilbage i appen, logget ind.
+
+*Fejlsøgning:*
+- "provider is not enabled" → Del B blev ikke gemt (eller Enable-knappen er slået fra).
+- "redirect_uri_mismatch" → redirect-URI'en i punkt 4 er ikke tegn-for-tegn `https://fhkykdaqvywrlsqsqpmq.supabase.co/auth/v1/callback`.
+- "Access blocked: app has not completed verification" → mailen der logger ind mangler under Test users (punkt 3) - tilføj den, eller tryk Publish app.
 
 Begge metoder giver samme konto-model: én konto = én opgaveliste, synk på tværs af alle enheder hvor hun er logget ind. I logger bare ind med hver jeres konto, hvis I begge vil bruge appen.
 
