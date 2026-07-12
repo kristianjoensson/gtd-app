@@ -1,5 +1,7 @@
 # GTD
 
+Live: https://kristianjoensson.github.io/gtd-app/
+
 Fang det. Glem det trygt.
 
 En rolig opgave-app til travle hoveder: skriv eller tal en opgave ind på dansk,
