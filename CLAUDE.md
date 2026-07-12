@@ -46,3 +46,4 @@ always degrade to local-only mode with the "ikke sat op" settings panel.
 - 2026-07-12: v1 built + verified in browser (mobile + desktop, light/dark). Parser 37/37.
 - 2026-07-12: renamed Ro → GTD; sync rewritten to Supabase Auth (Google + magic link), table `gtd_tasks` per-user RLS; supabase-js vendored.
 - 2026-07-12: DEPLOYED - public repo github.com/kristianjoensson/gtd-app, live at https://kristianjoensson.github.io/gtd-app/ (verified). Pending: Kristian creates the Supabase project, fills js/config.js, push redeploys automatically.
+- 2026-07-12: Supabase project fhkykdaqvywrlsqsqpmq connected (publishable key in config.js, deployed + verified live: REST 200, RLS blocks anon, email login on, Google provider off). Pending: Kristian sets Auth URL Configuration + optional Google provider.
