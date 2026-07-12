@@ -1,6 +1,6 @@
 // Ro service worker - network-first with cache fallback, so the app
 // stays fresh in normal use and still opens offline.
-const CACHE = 'ro-v1';
+const CACHE = 'gtd-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,8 @@ const ASSETS = [
   './js/parser.js',
   './js/store.js',
   './js/sync.js',
+  './js/config.js',
+  './js/vendor/supabase-js.js',
   './manifest.webmanifest',
   './icons/icon.svg',
   './icons/icon-192.png',

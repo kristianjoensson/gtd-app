@@ -51,6 +51,11 @@
   box-sizing: border-box;
 }
 
+/* The hidden attribute must always win over class display rules. */
+[hidden] {
+  display: none !important;
+}
+
 html {
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
@@ -557,8 +562,48 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 
 details summary { cursor: pointer; font-size: 14px; color: var(--ink-2); margin: 4px 0; }
 #sync-advanced { display: flex; flex-direction: column; gap: 8px; }
-#sync-advanced input { width: 100%; }
-.sync-actions { padding-top: 4px; }
+.auth-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.google-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  align-self: flex-start;
+}
+
+.g-badge {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent-ink);
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+#auth-email { flex: 1; min-width: 160px; }
 
 /* ---------- toast ---------- */
 .toast-root {

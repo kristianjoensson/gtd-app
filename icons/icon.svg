@@ -1,9 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="116" fill="#2e6e64"/>
-  <!-- lowercase "ro" drawn as strokes: stem + arm, then the ring -->
-  <g fill="none" stroke="#f6f4ef" stroke-width="56" stroke-linecap="round">
-    <path d="M150 380 L150 212"/>
-    <path d="M150 302 a90 90 0 0 1 90-90"/>
-    <circle cx="342" cy="302" r="78"/>
-  </g>
+  <!-- bold check: capture it, done -->
+  <path d="M136 272 L222 358 L376 172" fill="none" stroke="#f6f4ef" stroke-width="62" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Ro</title>
+  <title>GTD</title>
   <meta name="description" content="Fang det. Glem det trygt. En rolig opgaveliste." />
   <meta name="theme-color" content="#f6f4ef" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#161513" media="(prefers-color-scheme: dark)" />
@@ -12,14 +12,14 @@
   <link rel="apple-touch-icon" href="icons/icon-180.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Ro" />
+  <meta name="apple-mobile-web-app-title" content="GTD" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
       <span class="brand-mark" aria-hidden="true"></span>
-      <h1>Ro</h1>
+      <h1>GTD</h1>
     </div>
     <div class="topbar-actions">
       <span id="sync-dot" class="sync-dot" data-status="off" title="Synkronisering: fra"></span>
@@ -154,32 +154,30 @@
   <dialog id="settings-dialog" aria-label="Indstillinger">
     <div class="dialog-inner">
       <h2>Indstillinger</h2>
-      <h3>Synkronisering</h3>
-      <p class="hint">
-        Kører via en gratis Supabase-database. Opsætningen står i SETUP.md.
-        Har du allerede en synk-kode fra en anden enhed, så indsæt den her.
-      </p>
-      <label class="field-label" for="sync-code">Synk-kode</label>
-      <div class="field-inline">
-        <input id="sync-code" type="text" placeholder="ro1.…" autocomplete="off" />
-        <button id="btn-apply-code" type="button" class="ghost-btn small">Brug kode</button>
+      <h3>Konto og synkronisering</h3>
+      <div id="auth-unconfigured" hidden>
+        <p class="hint">
+          Synk er ikke sat op endnu, så opgaverne gemmes kun på denne enhed.
+          Opsætningen (gratis Supabase-projekt + login) står i SETUP.md.
+        </p>
       </div>
-      <details id="sync-advanced">
-        <summary>Manuel opsætning</summary>
-        <label class="field-label" for="sync-url">Supabase URL</label>
-        <input id="sync-url" type="url" placeholder="https://xxxx.supabase.co" autocomplete="off" />
-        <label class="field-label" for="sync-key">Anon-nøgle</label>
-        <input id="sync-key" type="text" placeholder="eyJ…" autocomplete="off" />
-        <label class="field-label" for="sync-token">Arbejdsområde-nøgle</label>
+      <div id="auth-signedout" class="auth-stack" hidden>
+        <p class="hint">Log ind, så dine opgaver følger med på tværs af iPhone og Windows.</p>
+        <button id="btn-google" type="button" class="primary-btn google-btn">
+          <span class="g-badge" aria-hidden="true">G</span>Log ind med Google
+        </button>
+        <div class="divider" aria-hidden="true">eller</div>
         <div class="field-inline">
-          <input id="sync-token" type="text" placeholder="tom = generér ny" autocomplete="off" />
-          <button id="btn-gen-token" type="button" class="ghost-btn small">Generér</button>
+          <input id="auth-email" type="email" placeholder="din@mail.dk" autocomplete="email" />
+          <button id="btn-magic" type="button" class="ghost-btn small">Send login-link</button>
         </div>
-      </details>
-      <div class="field-inline sync-actions">
-        <button id="btn-sync-save" type="button" class="primary-btn">Gem og forbind</button>
-        <button id="btn-copy-code" type="button" class="ghost-btn" hidden>Kopiér synk-kode</button>
-        <button id="btn-sync-off" type="button" class="ghost-btn danger" hidden>Slå synk fra</button>
+        <p class="hint">Login-linket kommer på mail og virker uden kodeord. Google-knappen kræver at Google-login er slået til i Supabase (SETUP.md, trin 3).</p>
+      </div>
+      <div id="auth-signedin" class="auth-stack" hidden>
+        <p class="hint">Logget ind som <strong id="auth-user"></strong>. Opgaverne synkroniserer automatisk.</p>
+        <div class="field-inline">
+          <button id="btn-signout" type="button" class="ghost-btn danger">Log ud</button>
+        </div>
       </div>
       <p id="sync-status-text" class="hint" aria-live="polite"></p>
       <div class="dialog-actions">
@@ -191,6 +189,7 @@
 
   <div id="toast-root" class="toast-root" aria-live="polite"></div>
 
+  <script src="js/vendor/supabase-js.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

@@ -1,71 +1,81 @@
-# Ro - opsætning (10-15 min, én gang)
+# GTD - opsætning (ca. 20 min, én gang)
 
-Ro virker med det samme på én enhed (alt gemmes lokalt i browseren).
-De to trin herunder giver hende: (1) en app på nettet begge enheder kan åbne,
-(2) synkronisering mellem iPhone og Windows.
+GTD virker med det samme på én enhed (alt gemmes lokalt i browseren).
+Trinene her giver: en app-URL begge enheder kan åbne, login med Google eller
+mail-link, og automatisk synkronisering af opgaverne.
 
-## Trin 1: Læg appen på nettet (ca. 5 min)
+## Hvad er Supabase, og er det gratis?
 
-Appen er ren statisk HTML - ingen build. Alle tre muligheder virker; GitHub Pages er gratis og stabil.
+Supabase er en hostet Postgres-database med login og API ovenpå - open source-alternativet til Googles Firebase. Den gemmer opgaverne og står for Google/mail-login. Free tier: 500 MB database, 50.000 aktive login-brugere pr. måned, ubegrænsede API-kald inden for fair use. En to-personers opgaveliste bruger under 1 promille af det. Eneste catch: gratis projekter går i dvale efter en uges inaktivitet og vågner ved første kald (få sekunders ventetid) - med daglig brug sker det ikke.
 
-**GitHub Pages (anbefalet):**
-1. Opret et repo (fx `ro-app`) og push denne mappe.
-2. Repo Settings → Pages → Source: `main` branch, root.
-3. Appen ligger nu på `https://<bruger>.github.io/ro-app/`.
+Supabase hoster kun data, ikke selve appen. Appen ligger på GitHub Pages (også gratis).
 
-**Vercel/Netlify:** importer mappen som projekt, framework "Other", ingen build command, output = mappen selv.
+## Trin 1: Supabase-projekt (5 min)
 
-HTTPS er et krav (ellers ingen "installér som app" og ingen offline-cache). Alle tre løsninger giver HTTPS automatisk.
-
-## Trin 2: Opret sync-databasen (ca. 5 min)
-
-1. Gå til [supabase.com](https://supabase.com) → New project (gratis tier, region `eu-central-1`).
-2. Åbn **SQL Editor** og kør:
+1. [supabase.com](https://supabase.com) → New project (region `eu-central-1`).
+2. **SQL Editor** → kør:
 
 ```sql
-create table public.ro_tasks (
+create table public.gtd_tasks (
   id uuid primary key,
-  workspace text not null,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   payload jsonb not null,
   updated_at timestamptz not null default now()
 );
 
-create index ro_tasks_ws_updated on public.ro_tasks (workspace, updated_at);
+create index gtd_tasks_user_updated on public.gtd_tasks (user_id, updated_at);
 
-alter table public.ro_tasks enable row level security;
+alter table public.gtd_tasks enable row level security;
 
--- Adgang kræver at klienten sender selve workspace-nøglen som header.
--- Anon-nøglen alene kan hverken læse eller skrive noget.
-create policy ro_select on public.ro_tasks for select to anon
-  using (workspace = (current_setting('request.headers', true)::json->>'x-workspace-token'));
-
-create policy ro_insert on public.ro_tasks for insert to anon
-  with check (workspace = (current_setting('request.headers', true)::json->>'x-workspace-token'));
-
-create policy ro_update on public.ro_tasks for update to anon
-  using (workspace = (current_setting('request.headers', true)::json->>'x-workspace-token'))
-  with check (workspace = (current_setting('request.headers', true)::json->>'x-workspace-token'));
+create policy gtd_select on public.gtd_tasks for select to authenticated
+  using (user_id = auth.uid());
+create policy gtd_insert on public.gtd_tasks for insert to authenticated
+  with check (user_id = auth.uid());
+create policy gtd_update on public.gtd_tasks for update to authenticated
+  using (user_id = auth.uid()) with check (user_id = auth.uid());
 ```
 
-3. Find **Project Settings → API**: kopiér `Project URL` og `anon public`-nøglen.
-4. Åbn Ro → tandhjulet → Manuel opsætning: indsæt URL + anon-nøgle, tryk **Generér** (arbejdsområde-nøgle), så **Gem og forbind**.
-5. Tryk **Kopiér synk-kode** og send koden til den anden enhed (fx via Beskeder).
-6. På den anden enhed: tandhjulet → indsæt koden i **Synk-kode** → **Brug kode**. Færdig.
+Hver bruger ser kun sine egne rækker (RLS på `auth.uid()`). Anon-nøglen alene giver ingen adgang til data.
 
-Synk kører automatisk: push ca. 1 sekund efter en ændring, pull hvert 20. sekund og hver gang appen får fokus. Konflikter afgøres pr. opgave med seneste ændring vinder.
+## Trin 2: Nøgler ind i appen (2 min)
 
-## Installér på enhederne
+**Project Settings → API**: kopiér `Project URL` og `anon public`-nøglen ind i
+[js/config.js](js/config.js), commit og push. Anon-nøglen er designet til at være offentlig -
+adgang styres af login + RLS, ikke af nøglen.
 
-**iPhone:** åbn appens URL i Safari → Del-knappen → **Føj til hjemmeskærm**. Ikonet "Ro" opfører sig som en app (fuldskærm, offline).
+Under **Authentication → URL Configuration**: sæt Site URL til appens adresse
+(fx `https://kristianjoensson.github.io/gtd-app/`) og tilføj samme adresse under Redirect URLs.
 
-**Windows:** åbn URL'en i Chrome eller Edge → installations-ikonet i adresselinjen ("Installér Ro") → appen får eget vindue og ikon i proceslinjen. Alm. browserfane virker også.
+## Trin 3: Login-metoder
+
+**Mail-link (virker med det samme, 0 opsætning):** Supabase sender et login-link pr. mail.
+Hun skriver sin mail i appen → trykker på linket i mailen på samme enhed → logget ind.
+Gratis-tierens indbyggede mailafsender er begrænset til få mails i timen - rigeligt, da
+login kun sker én gang pr. enhed (sessionen fornyes selv bagefter).
+
+**Google-login (pænest, 10 min opsætning):**
+1. [console.cloud.google.com](https://console.cloud.google.com) → nyt projekt → APIs & Services → OAuth consent screen: External, udfyld navn + din mail, tilføj hendes Gmail som testbruger (eller Publish app).
+2. Credentials → Create credentials → OAuth client ID → Web application:
+   - Authorized JavaScript origins: `https://<dit-supabase-ref>.supabase.co`
+   - Authorized redirect URIs: `https://<dit-supabase-ref>.supabase.co/auth/v1/callback`
+3. Kopiér Client ID + Client secret → Supabase → Authentication → Providers → Google → Enable + indsæt.
+
+Begge metoder giver samme konto-model: én konto = én opgaveliste, synk på tværs af alle enheder hvor hun er logget ind. I logger bare ind med hver jeres konto, hvis I begge vil bruge appen.
+
+## Trin 4: Installér på enhederne
+
+**iPhone:** åbn app-URL'en i Safari → Del → **Føj til hjemmeskærm**. Fuldskærm, eget ikon, virker offline.
+
+**Windows:** åbn URL'en i Chrome/Edge → installations-ikonet i adresselinjen ("Installér GTD") → eget vindue + ikon i proceslinjen.
+
+## Hosting-fakta (GitHub Pages og "privat")
+
+- Selve **sitet** på GitHub Pages er altid offentligt tilgængeligt for den der kender URL'en. Det kan ikke gøres privat uden GitHub Enterprise.
+- **Repoet** kan være privat, men Pages fra et privat repo kræver betalt GitHub-plan (Pro, ca. 4 USD/md). På gratis-plan skal repoet være offentligt for at Pages virker.
+- Det er ok: URL'en viser kun app-skallen. Uden login kan ingen se eller røre data. Det er samme model som alle web-apps med login.
+- Vil man absolut have URL'en bag adgangskontrol: Cloudflare Pages + Cloudflare Access (gratis op til 50 brugere) - kan sættes op senere uden app-ændringer.
 
 ## Diktering på dansk (iPhone)
 
-To veje, begge på dansk:
-- **Mikrofon-knappen i Ro** bruger talegenkendelse (kræver at Siri/diktering er slået til).
-- **Mikrofonen på iOS-tastaturet** virker altid i tekstfeltet - tryk i feltet, tryk mic, tal.
-
-## Sikkerhedsnote
-
-Workspace-nøglen fungerer som adgangskode til opgaverne (128 bit tilfældig). Det er fint til huskelister og hverdagsopgaver. Skal appen bruges til følsomt kildemateriale, bør vi opgradere til rigtige Supabase-logins (magic link) - sig til, det er en lille udvidelse.
+- Mikrofon-knappen i GTD bruger talegenkendelse (kræver Siri/diktering slået til).
+- Mikrofonen på iOS-tastaturet virker altid i tekstfeltet.

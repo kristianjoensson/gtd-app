@@ -7,8 +7,8 @@ import {
   columnTasks, loggedTasks, unloggedDoneCount, visible, sortTasks,
 } from './store.js';
 import {
-  initSync, restart, pushSoon, sync, generateToken,
-  encodeSyncCode, decodeSyncCode, saveSyncConfig, testConnection,
+  initSync, pushSoon, sync, isConfigured,
+  signInWithGoogle, signInWithEmail, signOutUser,
 } from './sync.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -41,14 +41,14 @@ if ('serviceWorker' in navigator) {
 }
 
 function seedWelcome() {
-  if (localStorage.getItem('ro.seeded')) return;
-  localStorage.setItem('ro.seeded', '1');
+  if (localStorage.getItem('gtd.seeded')) return;
+  localStorage.setItem('gtd.seeded', '1');
   if (state.tasks.length) return;
   addTask({
-    title: 'Velkommen til Ro. Åbn mig',
+    title: 'Velkommen til GTD. Åbn mig',
     notes:
-      'Sådan bruger du Ro:\n' +
-      '1. Skriv eller tal en opgave i feltet øverst. Ro forstår dansk, fx "Ring til Lars i morgen, vigtigt".\n' +
+      'Sådan bruger du GTD:\n' +
+      '1. Skriv eller tal en opgave i feltet øverst. GTD forstår dansk, fx "Ring til Lars i morgen, vigtigt".\n' +
       '2. Datoer og prioritet bliver fanget automatisk og vist som små brikker før du gemmer.\n' +
       '3. Tryk på cirklen for at gøre en opgave færdig. Tryk "Log færdige" under Log for at arkivere dem.\n' +
       '4. Åbn en opgave for at skrive noter, ligesom her.\n\n' +
@@ -229,13 +229,14 @@ function renderSyncDot() {
   const dot = $('#sync-dot');
   dot.dataset.status = sync.status;
   dot.title = {
-    off: 'Synkronisering: fra',
+    off: 'Synk ikke sat op',
+    signedout: 'Ikke logget ind',
     idle: 'Synkronisering: klar',
     syncing: 'Synkroniserer…',
     ok: 'Synkroniseret',
     error: `Synk-fejl: ${sync.error ?? ''}`,
   }[sync.status] ?? '';
-  renderSettingsStatus();
+  if ($('#settings-dialog')?.open) renderAuthPanel();
 }
 
 // ---------------------------------------------------------------------------
@@ -524,85 +525,46 @@ $('#btn-log-done').addEventListener('click', () => {
 const settingsDialog = $('#settings-dialog');
 
 $('#btn-settings').addEventListener('click', () => {
-  const s = state.settings.sync;
-  $('#sync-url').value = s?.url ?? '';
-  $('#sync-key').value = s?.anonKey ?? '';
-  $('#sync-token').value = s?.token ?? '';
-  $('#sync-code').value = '';
-  $('#btn-copy-code').hidden = !s;
-  $('#btn-sync-off').hidden = !s;
-  $('#sync-advanced').open = !s;
-  renderSettingsStatus();
+  renderAuthPanel();
+  $('#sync-status-text').textContent = '';
   settingsDialog.showModal();
 });
 
 $('#settings-close').addEventListener('click', () => settingsDialog.close());
 
-$('#btn-gen-token').addEventListener('click', () => {
-  $('#sync-token').value = generateToken();
-});
-
-$('#btn-apply-code').addEventListener('click', () => {
-  const parsed = decodeSyncCode($('#sync-code').value);
-  if (!parsed) {
-    $('#sync-status-text').textContent = 'Koden kunne ikke læses. Den starter med "ro1.".';
-    return;
-  }
-  $('#sync-url').value = parsed.url;
-  $('#sync-key').value = parsed.anonKey;
-  $('#sync-token').value = parsed.token;
-  connectSync(parsed);
-});
-
-$('#btn-sync-save').addEventListener('click', () => {
-  const config = {
-    url: $('#sync-url').value.trim(),
-    anonKey: $('#sync-key').value.trim(),
-    token: $('#sync-token').value.trim() || generateToken(),
-  };
-  if (!config.url || !config.anonKey) {
-    $('#sync-status-text').textContent = 'Udfyld Supabase URL og anon-nøgle, eller indsæt en synk-kode.';
-    return;
-  }
-  $('#sync-token').value = config.token;
-  connectSync(config);
-});
-
-async function connectSync(config) {
-  $('#sync-status-text').textContent = 'Tester forbindelsen…';
-  const result = await testConnection(config);
-  if (!result.ok) {
-    $('#sync-status-text').textContent = result.message;
-    return;
-  }
-  // Everything local becomes pushable so a fresh device uploads its state.
-  for (const t of state.tasks) state.dirty.add(t.id);
-  saveSyncConfig(config);
-  $('#btn-copy-code').hidden = false;
-  $('#btn-sync-off').hidden = false;
-  $('#sync-status-text').textContent = 'Forbundet. Kopiér synk-koden og indsæt den på din anden enhed.';
+function renderAuthPanel() {
+  const configured = isConfigured();
+  const signedIn = Boolean(sync.user);
+  $('#auth-unconfigured').hidden = configured;
+  $('#auth-signedout').hidden = !configured || signedIn;
+  $('#auth-signedin').hidden = !configured || !signedIn;
+  if (signedIn) $('#auth-user').textContent = sync.user;
+  renderSettingsStatus();
 }
 
-$('#btn-copy-code').addEventListener('click', async () => {
-  const s = state.settings.sync;
-  if (!s) return;
-  const code = encodeSyncCode(s);
-  try {
-    await navigator.clipboard.writeText(code);
-    $('#sync-status-text').textContent = 'Synk-kode kopieret. Indsæt den i Ro på den anden enhed.';
-  } catch {
-    $('#sync-code').value = code;
-    $('#sync-status-text').textContent = 'Koden står i feltet ovenfor. Kopiér den manuelt.';
-  }
+$('#btn-google').addEventListener('click', async () => {
+  $('#sync-status-text').textContent = 'Sender dig til Google…';
+  const { error } = await signInWithGoogle();
+  if (error) $('#sync-status-text').textContent = `Login fejlede: ${error}`;
 });
 
-$('#btn-sync-off').addEventListener('click', () => {
-  saveSyncConfig(null);
-  state.settings.sync = null;
-  $('#btn-copy-code').hidden = true;
-  $('#btn-sync-off').hidden = true;
-  $('#sync-status-text').textContent = 'Synkronisering slået fra. Dine opgaver bliver kun gemt på denne enhed.';
-  restart();
+$('#btn-magic').addEventListener('click', async () => {
+  const email = $('#auth-email').value.trim();
+  if (!email.includes('@')) {
+    $('#sync-status-text').textContent = 'Skriv din mailadresse først.';
+    return;
+  }
+  $('#sync-status-text').textContent = 'Sender login-link…';
+  const { error } = await signInWithEmail(email);
+  $('#sync-status-text').textContent = error
+    ? `Kunne ikke sende linket: ${error}`
+    : 'Linket er sendt. Åbn mailen på DENNE enhed og tryk på det.';
+});
+
+$('#btn-signout').addEventListener('click', async () => {
+  await signOutUser();
+  renderAuthPanel();
+  toast('Logget ud. Opgaverne bliver på enheden.');
 });
 
 function renderSettingsStatus() {

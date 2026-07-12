@@ -2,9 +2,9 @@
 // Mirrors Tempo's model: inbox + board columns, status open/done,
 // completedAt/loggedAt, soft delete via `deleted` (sync tombstone).
 
-const LS_TASKS = 'ro.tasks.v1';
-const LS_SETTINGS = 'ro.settings.v1';
-const LS_DIRTY = 'ro.sync.dirty.v1';
+const LS_TASKS = 'gtd.tasks.v1';
+const LS_SETTINGS = 'gtd.settings.v1';
+const LS_DIRTY = 'gtd.sync.dirty.v1';
 
 export const COLUMNS = [
   { id: 'inbox', label: 'Indbakke' },
