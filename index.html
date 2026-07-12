@@ -15,7 +15,7 @@
   <meta name="apple-mobile-web-app-title" content="GTD" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
-<body>
+<body data-auth="pending">
   <header class="topbar">
     <div class="brand">
       <span class="brand-mark" aria-hidden="true"></span>
@@ -91,6 +91,20 @@
       <p id="log-empty" class="empty" hidden>Ingenting logget endnu. Færdige opgaver samles her.</p>
     </section>
   </main>
+
+  <!-- Login gate: the only thing visible until a session exists -->
+  <section id="login-view" aria-label="Log ind">
+    <span class="brand-mark big" aria-hidden="true"></span>
+    <h2>Velkommen til GTD</h2>
+    <p class="hint">Log ind for at komme i gang. Det skal kun gøres én gang pr. enhed - appen husker dig bagefter.</p>
+    <button id="btn-google-gate" type="button" class="primary-btn google-btn">
+      <span class="g-badge" aria-hidden="true">G</span>Log ind med Google
+    </button>
+    <div class="divider" aria-hidden="true">eller</div>
+    <input id="login-email" type="email" placeholder="din@mail.dk" autocomplete="email" aria-label="Mailadresse" />
+    <button id="btn-magic-gate" type="button" class="ghost-btn">Send login-link</button>
+    <p id="login-status" class="hint" aria-live="polite"></p>
+  </section>
 
   <nav class="tabs" aria-label="Visninger">
     <button class="tab" data-tab="fokus" aria-current="page">

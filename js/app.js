@@ -7,7 +7,7 @@ import {
   columnTasks, loggedTasks, unloggedDoneCount, visible, sortTasks,
 } from './store.js';
 import {
-  initSync, pushSoon, sync, isConfigured,
+  initSync, pushSoon, sync, isConfigured, onFirstSync,
   signInWithGoogle, signInWithEmail, signOutUser,
 } from './sync.js';
 
@@ -28,12 +28,15 @@ const ui = {
 // boot
 // ---------------------------------------------------------------------------
 load();
-seedWelcome();
+// Local-only mode seeds at boot; with login, the welcome task waits for the
+// first sync so an already-populated account never gets a duplicate.
+if (!isConfigured()) seedWelcome();
 renderAll();
 subscribe((source) => {
   renderAll();
   if (source === 'local') pushSoon();
 });
+onFirstSync(seedWelcome);
 initSync(renderSyncDot);
 
 if ('serviceWorker' in navigator) {
@@ -55,7 +58,6 @@ function seedWelcome() {
       'God ro i hovedet :)',
     col: 'inbox',
   });
-  state.dirty.clear(); // the welcome task is device-local until edited
 }
 
 // ---------------------------------------------------------------------------
@@ -226,6 +228,9 @@ function renderTabsState() {
 }
 
 function renderSyncDot() {
+  // Login gate: only an active "signedout" state hides the app. Everything
+  // else (incl. unconfigured local mode) shows it.
+  document.body.dataset.auth = sync.status === 'signedout' ? 'out' : 'in';
   const dot = $('#sync-dot');
   dot.dataset.status = sync.status;
   dot.title = {
@@ -542,28 +547,39 @@ function renderAuthPanel() {
   renderSettingsStatus();
 }
 
-$('#btn-google').addEventListener('click', async () => {
-  $('#sync-status-text').textContent = 'Sender dig til Google…';
+async function startGoogle(statusEl) {
+  statusEl.textContent = 'Sender dig til Google…';
   const { error } = await signInWithGoogle();
-  if (error) $('#sync-status-text').textContent = `Login fejlede: ${error}`;
-});
+  if (error) statusEl.textContent = `Login fejlede: ${error}`;
+}
 
-$('#btn-magic').addEventListener('click', async () => {
-  const email = $('#auth-email').value.trim();
+async function startMagic(inputEl, statusEl) {
+  const email = inputEl.value.trim();
   if (!email.includes('@')) {
-    $('#sync-status-text').textContent = 'Skriv din mailadresse først.';
+    statusEl.textContent = 'Skriv din mailadresse først.';
     return;
   }
-  $('#sync-status-text').textContent = 'Sender login-link…';
+  statusEl.textContent = 'Sender login-link…';
   const { error } = await signInWithEmail(email);
-  $('#sync-status-text').textContent = error
+  statusEl.textContent = error
     ? `Kunne ikke sende linket: ${error}`
     : 'Linket er sendt. Åbn mailen på DENNE enhed og tryk på det.';
+}
+
+$('#btn-google').addEventListener('click', () => startGoogle($('#sync-status-text')));
+$('#btn-magic').addEventListener('click', () => startMagic($('#auth-email'), $('#sync-status-text')));
+$('#btn-google-gate').addEventListener('click', () => startGoogle($('#login-status')));
+$('#btn-magic-gate').addEventListener('click', () => startMagic($('#login-email'), $('#login-status')));
+$('#login-email').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    startMagic($('#login-email'), $('#login-status'));
+  }
 });
 
 $('#btn-signout').addEventListener('click', async () => {
   await signOutUser();
-  renderAuthPanel();
+  settingsDialog.close();
   toast('Logget ud. Opgaverne bliver på enheden.');
 });
 

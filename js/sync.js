@@ -18,6 +18,13 @@ let statusCb = () => {};
 let timer = null;
 let pushTimer = null;
 let inFlight = false;
+let firstSyncCb = null;
+let firstSyncPending = false;
+
+/** Fires once after the first successful push+pull of a login session. */
+export function onFirstSync(fn) {
+  firstSyncCb = fn;
+}
 
 export function isConfigured() {
   return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase);
@@ -58,6 +65,7 @@ export function initSync(onStatus) {
 function adoptSession(session) {
   sync.user = session?.user?.email ?? null;
   if (session?.user) {
+    if (!timer) firstSyncPending = true; // fresh adoption, not a token refresh
     // First login on this device (or account switch): re-pull everything and
     // queue all local tasks so device state merges up into the account.
     const prev = localStorage.getItem(LS_USER);
@@ -134,6 +142,10 @@ export async function tick() {
     await push(headers);
     await pull(headers);
     setStatus('ok');
+    if (firstSyncPending) {
+      firstSyncPending = false;
+      firstSyncCb?.();
+    }
   } catch (err) {
     setStatus('error', String(err?.message ?? err));
   } finally {

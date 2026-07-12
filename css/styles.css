@@ -568,6 +568,47 @@ details summary { cursor: pointer; font-size: 14px; color: var(--ink-2); margin:
   gap: 12px;
 }
 
+/* ---------- login gate ---------- */
+/* Until a session exists, the app body stays hidden and only the gate shows. */
+#login-view { display: none; }
+
+body[data-auth='pending'] .capture,
+body[data-auth='pending'] main,
+body[data-auth='pending'] .tabs,
+body[data-auth='out'] .capture,
+body[data-auth='out'] main,
+body[data-auth='out'] .tabs {
+  display: none !important;
+}
+
+body[data-auth='out'] #login-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: min(92vw, 380px);
+  margin: 9vh auto 0;
+  padding: 32px 24px;
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+
+#login-view h2 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+
+#login-view .brand-mark.big {
+  width: 28px;
+  height: 28px;
+}
+
+#login-view .divider { width: 100%; }
+#login-view input { width: 100%; }
+
 .google-btn {
   display: inline-flex;
   align-items: center;
