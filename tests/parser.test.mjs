@@ -210,6 +210,52 @@ t('combined: date + time + priority', () => {
   assert.equal(r.title, 'Send manus til forlaget');
 });
 
+// --- spoken instructions (dictation) -----------------------------------------
+t('spoken instruction phrase is data, not title', () => {
+  const r = p('Husk frokost Sæt den her til tirsdag klokken 12');
+  assert.equal(r.title, 'Husk frokost');
+  assert.equal(r.due, '2026-07-14');
+  assert.equal(r.dueTime, '12:00');
+});
+
+t('klokken as spoken time word', () => {
+  const r = p('Ring til banken klokken 9.30');
+  assert.equal(r.dueTime, '09:30');
+  assert.equal(r.due, '2026-07-12');
+  assert.equal(r.title, 'Ring til banken');
+});
+
+t('deadline er fredag', () => {
+  const r = p('Aflever artikel deadline er fredag');
+  assert.equal(r.title, 'Aflever artikel');
+  assert.equal(r.due, '2026-07-17');
+});
+
+t('skal være færdig senest onsdag', () => {
+  const r = p('Rapporten skal være færdig senest onsdag');
+  assert.equal(r.title, 'Rapporten');
+  assert.equal(r.due, '2026-07-15');
+});
+
+t('time and date first, filler dropped', () => {
+  const r = p('Klokken 14 tirsdag skal jeg hente pakken');
+  assert.equal(r.dueTime, '14:00');
+  assert.equal(r.due, '2026-07-14');
+  assert.equal(r.title, 'Hente pakken');
+});
+
+t('real til-phrases survive', () => {
+  const r = p('Køb billetter til koncerten på fredag');
+  assert.equal(r.title, 'Køb billetter til koncerten');
+  assert.equal(r.due, '2026-07-17');
+});
+
+t('flyt mødet keeps its meaning', () => {
+  const r = p('Flyt mødet til torsdag');
+  assert.equal(r.title, 'Flyt mødet');
+  assert.equal(r.due, '2026-07-16');
+});
+
 // --- labels ------------------------------------------------------------------
 t('labelForDate', () => {
   assert.equal(labelForDate('2026-07-12', now), 'i dag');

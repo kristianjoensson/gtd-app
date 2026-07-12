@@ -22,7 +22,7 @@ stripe) and due date are parsed from natural Danish at capture time.
 - `js/vendor/supabase-js.js` - pinned UMD build of @supabase/supabase-js v2 (auth/session/refresh)
 - `js/app.js` - rendering + events. Mobile = tabs (Fokus/Indbakke/Senere/Log), desktop ≥900px = 4-column board + log below.
 - `sw.js` - network-first cache. Bump `CACHE` version when changing the assets list.
-- `tests/parser.test.mjs` - run `node tests/parser.test.mjs` (37 tests). Always run after touching parser.js.
+- `tests/parser.test.mjs` - run `node tests/parser.test.mjs` (44 tests). Always run after touching parser.js.
 - `SETUP.md` - Kristian-facing: Supabase SQL, Google OAuth walkthrough, deploy, hosting facts.
 
 ## Run / verify

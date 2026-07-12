@@ -27,8 +27,11 @@ const NUM_WORDS = {
   en: 1, et: 1, to: 2, tre: 3, fire: 4, fem: 5, seks: 6, syv: 7, otte: 8, ni: 9, ti: 10, fjorten: 14,
 };
 
-// Words that often sit right before a date and should be stripped with it.
-const DATE_LEAD_RE = /(?<![\wæøåé])(?:deadline|frist|senest|inden|til|på|nu på|d\.|den)\s*$/i;
+// Words that often sit right before a date/time and should be stripped with it.
+// Applied iteratively, so whole spoken instructions collapse:
+// "Sæt den her til tirsdag" -> sæt<-den<-her<-til all go with the date.
+const LEAD_WORD_RE =
+  /(?<![\wæøåé])(?:deadline|fristen|frist|senest|inden|til|på|nu|førstkommende|d\.|den|det|her|sæt|læg|flyt|ryk|skal|være|færdigt?|klart?|gerne|helst|er)\s*$/i;
 
 function re(src) {
   return new RegExp(src, 'ig');
@@ -138,9 +141,9 @@ const DATE_PATTERNS = [
   },
 ];
 
-// "kl. 14", "kl 9.30", "14:30"
+// "kl. 14", "kl 9.30", "klokken 12", "14:30"
 const TIME_PATTERNS = [
-  { re: () => re(B + 'kl\\.?\\s*(\\d{1,2})(?:[.:](\\d{2}))?' + E) },
+  { re: () => re(B + 'kl(?:okken)?\\.?\\s*(\\d{1,2})(?:[.:](\\d{2}))?' + E) },
   { re: () => re('(?<![\\d.:])(\\d{1,2}):(\\d{2})(?![\\d.:])') },
 ];
 
@@ -160,9 +163,13 @@ function overlaps(a, b) {
 }
 
 function extendLead(text, index) {
-  const before = text.slice(0, index);
-  const lead = before.match(DATE_LEAD_RE);
-  return lead ? index - lead[0].length : index;
+  let start = index;
+  for (let i = 0; i < 6; i++) {
+    const lead = text.slice(0, start).match(LEAD_WORD_RE);
+    if (!lead) break;
+    start -= lead[0].length;
+  }
+  return start;
 }
 
 function firstMatch(text, patterns, now) {
@@ -190,6 +197,15 @@ function stripSpans(text, spans) {
     .replace(/^[\s,.;:!?–-]+/, '')
     .replace(/[\s,.;:–-]+$/, '')
     .trim();
+  // When something was parsed out, also drop dictation filler left at the front
+  // ("Klokken 14 tirsdag skal jeg hente pakken" -> "Hente pakken").
+  if (spans.length) {
+    for (let i = 0; i < 3; i++) {
+      const next = out.replace(/^(?:skal jeg|jeg skal|så|og|at)\s+/i, '');
+      if (next === out) break;
+      out = next;
+    }
+  }
   if (out) out = out[0].toUpperCase() + out.slice(1);
   return out;
 }
@@ -240,7 +256,12 @@ export function parse(input, opts = {}) {
     const h = +timeHit.m[1];
     const min = timeHit.m[2] != null ? +timeHit.m[2] : 0;
     if (h >= 0 && h < 24 && min >= 0 && min < 60) {
-      const span = { index: timeHit.m.index, length: timeHit.m[0].length };
+      const rawStart = timeHit.m.index;
+      const end = rawStart + timeHit.m[0].length;
+      let start = extendLead(text, rawStart);
+      // Fall back to the raw span if the lead extension collides with the date span.
+      if (spans.some((s) => overlaps(s, { index: start, length: end - start }))) start = rawStart;
+      const span = { index: start, length: end - start };
       if (!spans.some((s) => overlaps(s, span))) {
         matches.push({ type: 'time', text: timeHit.m[0].trim(), ...span, time: `${pad(h)}:${pad(min)}` });
         if (!disabled.has('time')) {
