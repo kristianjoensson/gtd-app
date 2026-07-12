@@ -90,6 +90,19 @@ function adoptSession(session) {
 // ---------------------------------------------------------------------------
 export async function signInWithGoogle() {
   if (!client) return { error: 'Synk er ikke sat op.' };
+  // Pre-check the provider so a disabled Google login gives a readable
+  // message instead of redirecting to GoTrue's raw JSON error page.
+  try {
+    const res = await fetch(`${SUPABASE_URL.replace(/\/+$/, '')}/auth/v1/settings`, {
+      headers: { apikey: SUPABASE_ANON_KEY },
+    });
+    const settings = await res.json();
+    if (settings?.external && !settings.external.google) {
+      return { error: 'GOOGLE_DISABLED' };
+    }
+  } catch {
+    // offline or blocked - let the normal flow produce its own error
+  }
   const { error } = await client.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: appUrl() },

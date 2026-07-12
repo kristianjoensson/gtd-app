@@ -550,7 +550,12 @@ function renderAuthPanel() {
 async function startGoogle(statusEl) {
   statusEl.textContent = 'Sender dig til Google…';
   const { error } = await signInWithGoogle();
-  if (error) statusEl.textContent = `Login fejlede: ${error}`;
+  if (error === 'GOOGLE_DISABLED') {
+    statusEl.textContent =
+      'Google-login er ikke aktiveret endnu. Brug "Send login-link" i stedet - det virker nu. (Google slås til via SETUP.md trin 3.)';
+  } else if (error) {
+    statusEl.textContent = `Login fejlede: ${error}`;
+  }
 }
 
 async function startMagic(inputEl, statusEl) {
