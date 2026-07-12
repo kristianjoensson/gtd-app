@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Ro</title>
+  <meta name="description" content="Fang det. Glem det trygt. En rolig opgaveliste." />
+  <meta name="theme-color" content="#f6f4ef" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#161513" media="(prefers-color-scheme: dark)" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Ro" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <h1>Ro</h1>
+    </div>
+    <div class="topbar-actions">
+      <span id="sync-dot" class="sync-dot" data-status="off" title="Synkronisering: fra"></span>
+      <button id="btn-settings" class="icon-btn" aria-label="Indstillinger" title="Indstillinger">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <section class="capture" aria-label="Hurtig indfangning">
+    <form id="capture-form" class="capture-row" action=".">
+      <input
+        id="capture-input"
+        type="text"
+        inputmode="text"
+        autocomplete="off"
+        enterkeyhint="done"
+        placeholder="Skriv eller tal. Fx: Ring til Lars i morgen, vigtigt"
+        aria-label="Ny opgave"
+      />
+      <button id="btn-mic" type="button" class="icon-btn mic-btn" aria-label="Optag med mikrofon" title="Tal din opgave ind">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+      </button>
+      <button id="btn-add" type="submit" class="add-btn" aria-label="Tilføj opgave">Tilføj</button>
+    </form>
+    <div id="capture-chips" class="chips" aria-live="polite"></div>
+  </section>
+
+  <main id="main">
+    <!-- Mobile: Fokus (composite view) -->
+    <section id="view-fokus" class="view" data-view="fokus" aria-label="Fokus">
+      <div id="fokus-due"></div>
+      <div class="col-group">
+        <h2 class="col-title">I gang</h2>
+        <div id="fokus-doing" class="list"></div>
+      </div>
+      <div class="col-group">
+        <h2 class="col-title">Næste</h2>
+        <div id="fokus-next" class="list"></div>
+      </div>
+    </section>
+
+    <!-- Board columns (desktop grid; single tabs on mobile) -->
+    <section id="board" class="board">
+      <div class="col view" data-view="inbox">
+        <h2 class="col-title">Indbakke <span id="count-inbox" class="count"></span></h2>
+        <div id="col-inbox" class="list"></div>
+      </div>
+      <div class="col view" data-view="next-desktop">
+        <h2 class="col-title">Næste <span id="count-next" class="count"></span></h2>
+        <div id="col-next" class="list"></div>
+      </div>
+      <div class="col view" data-view="doing-desktop">
+        <h2 class="col-title">I gang <span id="count-doing" class="count"></span></h2>
+        <div id="col-doing" class="list"></div>
+      </div>
+      <div class="col view" data-view="later">
+        <h2 class="col-title">Senere <span id="count-later" class="count"></span></h2>
+        <div id="col-later" class="list"></div>
+      </div>
+    </section>
+
+    <!-- Log (Tempo's logged section) -->
+    <section id="view-log" class="view" data-view="log" aria-label="Log">
+      <div class="log-controls">
+        <button id="btn-log-done" class="ghost-btn" hidden>Log færdige (<span id="log-pending-count">0</span>)</button>
+      </div>
+      <div id="log-groups"></div>
+      <p id="log-empty" class="empty" hidden>Ingenting logget endnu. Færdige opgaver samles her.</p>
+    </section>
+  </main>
+
+  <nav class="tabs" aria-label="Visninger">
+    <button class="tab" data-tab="fokus" aria-current="page">
+      <span class="tab-icon" aria-hidden="true">◎</span>Fokus
+    </button>
+    <button class="tab" data-tab="inbox">
+      <span class="tab-icon" aria-hidden="true">▢</span>Indbakke<span id="tab-inbox-badge" class="badge" hidden></span>
+    </button>
+    <button class="tab" data-tab="later">
+      <span class="tab-icon" aria-hidden="true">≡</span>Senere
+    </button>
+    <button class="tab" data-tab="log">
+      <span class="tab-icon" aria-hidden="true">✓</span>Log
+    </button>
+  </nav>
+
+  <!-- Task detail -->
+  <dialog id="task-dialog" aria-label="Opgave">
+    <form method="dialog" class="dialog-inner">
+      <div class="dialog-head">
+        <button id="task-check" type="button" class="check" role="checkbox" aria-checked="false" aria-label="Markér som færdig"></button>
+        <textarea id="task-title" rows="1" placeholder="Titel" aria-label="Titel"></textarea>
+      </div>
+      <textarea id="task-notes" rows="4" placeholder="Noter" aria-label="Noter"></textarea>
+      <div class="field-row">
+        <label class="field-label" for="task-priority-group">Prioritet</label>
+        <div id="task-priority-group" class="seg" role="group" aria-label="Prioritet">
+          <button type="button" data-pri="" class="seg-btn">Ingen</button>
+          <button type="button" data-pri="low" class="seg-btn pri-low">Lav</button>
+          <button type="button" data-pri="medium" class="seg-btn pri-medium">Mellem</button>
+          <button type="button" data-pri="high" class="seg-btn pri-high">Høj</button>
+        </div>
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="task-due">Deadline</label>
+        <div class="field-inline">
+          <input id="task-due" type="date" aria-label="Deadline-dato" />
+          <input id="task-due-time" type="time" aria-label="Tidspunkt" />
+          <button id="task-due-clear" type="button" class="ghost-btn small">Ryd</button>
+        </div>
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="task-col">Liste</label>
+        <select id="task-col" aria-label="Liste">
+          <option value="inbox">Indbakke</option>
+          <option value="next">Næste</option>
+          <option value="doing">I gang</option>
+          <option value="later">Senere</option>
+        </select>
+      </div>
+      <p id="task-meta" class="meta"></p>
+      <div class="dialog-actions">
+        <button id="task-delete" type="button" class="ghost-btn danger">Slet</button>
+        <span class="spacer"></span>
+        <button id="task-close" value="close" class="primary-btn">Luk</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Settings -->
+  <dialog id="settings-dialog" aria-label="Indstillinger">
+    <div class="dialog-inner">
+      <h2>Indstillinger</h2>
+      <h3>Synkronisering</h3>
+      <p class="hint">
+        Kører via en gratis Supabase-database. Opsætningen står i SETUP.md.
+        Har du allerede en synk-kode fra en anden enhed, så indsæt den her.
+      </p>
+      <label class="field-label" for="sync-code">Synk-kode</label>
+      <div class="field-inline">
+        <input id="sync-code" type="text" placeholder="ro1.…" autocomplete="off" />
+        <button id="btn-apply-code" type="button" class="ghost-btn small">Brug kode</button>
+      </div>
+      <details id="sync-advanced">
+        <summary>Manuel opsætning</summary>
+        <label class="field-label" for="sync-url">Supabase URL</label>
+        <input id="sync-url" type="url" placeholder="https://xxxx.supabase.co" autocomplete="off" />
+        <label class="field-label" for="sync-key">Anon-nøgle</label>
+        <input id="sync-key" type="text" placeholder="eyJ…" autocomplete="off" />
+        <label class="field-label" for="sync-token">Arbejdsområde-nøgle</label>
+        <div class="field-inline">
+          <input id="sync-token" type="text" placeholder="tom = generér ny" autocomplete="off" />
+          <button id="btn-gen-token" type="button" class="ghost-btn small">Generér</button>
+        </div>
+      </details>
+      <div class="field-inline sync-actions">
+        <button id="btn-sync-save" type="button" class="primary-btn">Gem og forbind</button>
+        <button id="btn-copy-code" type="button" class="ghost-btn" hidden>Kopiér synk-kode</button>
+        <button id="btn-sync-off" type="button" class="ghost-btn danger" hidden>Slå synk fra</button>
+      </div>
+      <p id="sync-status-text" class="hint" aria-live="polite"></p>
+      <div class="dialog-actions">
+        <span class="spacer"></span>
+        <button id="settings-close" type="button" class="ghost-btn">Luk</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast-root" class="toast-root" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
