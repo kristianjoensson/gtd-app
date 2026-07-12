@@ -3,5 +3,5 @@
 // The anon key is designed to be public; data is protected by login + RLS.
 // Leave both empty to run the app in local-only mode (no sync, no login).
 
-export const SUPABASE_URL = '';
+export const SUPABASE_URL = 'https://fhkykdaqvywrlsqsqpmq.supabase.co';
 export const SUPABASE_ANON_KEY = '';
