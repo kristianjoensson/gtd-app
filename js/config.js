@@ -4,4 +4,4 @@
 // Leave both empty to run the app in local-only mode (no sync, no login).
 
 export const SUPABASE_URL = 'https://fhkykdaqvywrlsqsqpmq.supabase.co';
-export const SUPABASE_ANON_KEY = '';
+export const SUPABASE_ANON_KEY = 'sb_publishable_ZnFaQvpg5viOZu8I-6LFyg_tK4PRpaF';
