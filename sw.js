@@ -1,6 +1,6 @@
 // Ro service worker - network-first with cache fallback, so the app
 // stays fresh in normal use and still opens offline.
-const CACHE = 'gtd-v2';
+const CACHE = 'gtd-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -39,7 +39,9 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== location.origin) return; // never touch sync API calls
 
   event.respondWith(
-    fetch(request)
+    // no-cache: always revalidate with the server (GitHub Pages sends
+    // max-age=600, which otherwise delays app updates by up to 10 min).
+    fetch(request, { cache: 'no-cache' })
       .then((response) => {
         if (response.ok) {
           const copy = response.clone();
